@@ -1,0 +1,25 @@
+# Data manipulation and numerical computing
+pandas
+numpy
+
+# Data collection and web scraping
+requests
+beautifulsoup4
+lxml
+
+# Analysis and visualization
+matplotlib
+seaborn
+plotly
+folium
+
+# Machine learning
+scikit-learn
+
+# SQL notebooks
+sqlalchemy
+ipython-sql
+prettytable
+
+# Dashboard
+dash
