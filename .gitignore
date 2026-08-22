@@ -20,6 +20,7 @@ ENV/
 *.db
 *.sqlite
 *.sqlite3
+!data/processed/my_data1.db
 
 # Local editor and operating-system files
 .vscode/
