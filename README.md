@@ -45,11 +45,13 @@ These results are exploratory rather than production benchmarks. The modeling da
 
 ## Run Locally
 
+### Option 1: Python venv
+
 Create and activate the project environment:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.\<>.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
@@ -61,7 +63,21 @@ python app\spacex_dash_app.py
 
 Then open `http://127.0.0.1:8051/` in a browser.
 
-To reproduce the notebooks, open the repository root in Jupyter or VS Code and select the `.venv` Python environment as the notebook kernel. Execute the notebooks in numerical order.
+### Option 2: Docker (Recommended)
+
+Build and run with Docker:
+
+```powershell
+docker build --tag spacex-project . docker buildx build --tag spacex-project -f Dockerfile
+docker run -it -p 8051:8051 spacex-project
+```
+
+## Development Tools
+
+| File | Description |
+|------|-------------|
+| `Dockerfile` | Container configuration for reproducible builds |
+| `.dockerignore` | Files to exclude when using Docker |
 
 ## Data Sources
 

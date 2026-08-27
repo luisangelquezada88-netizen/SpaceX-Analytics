@@ -6,6 +6,7 @@ numpy
 requests
 beautifulsoup4
 lxml
+html5lib
 
 # Analysis and visualization
 matplotlib
@@ -23,3 +24,7 @@ prettytable
 
 # Dashboard
 dash
+
+# Notebook execution
+ipykernel
+nbconvert

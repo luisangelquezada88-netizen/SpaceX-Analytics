@@ -1,0 +1,23 @@
+*.db
+*.sqlite
+*.sqlite3
+
+# Python virtual environments and caches
+.venv/
+venv/
+env/
+ENV/*.pth
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
