@@ -25,4 +25,4 @@ USER appuser
 EXPOSE 8051
 
 # Default command to run the dashboard
-CMD ["python", "app\spacex_dash_app.py"]
+CMD ["python", "app/spacex_dash_app.py"]

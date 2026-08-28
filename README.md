@@ -39,9 +39,9 @@ tests/            # Reserved for automated tests
 
 ## Model Results
 
-The notebooks compare four supervised classification algorithms using train/test splitting and cross-validated hyperparameter search. The best recorded cross-validation accuracy was approximately **87.3%**, achieved by the Decision Tree model.
+The notebooks compare four supervised classification algorithms using train/test splitting and cross-validated hyperparameter search. The best cross-validation accuracy is **79.6%** (SVM with sigmoid kernel), while on the full dataset comparison SVM achieves the highest accuracy at **87.8%**. Test set accuracies are: SVM 94.4%, Decision Tree 94.4%, Logistic Regression 77.8%, KNN 72.2%.
 
-These results are exploratory rather than production benchmarks. The modeling dataset is small, historical, and highly dependent on the feature engineering and split strategy used in the notebook.
+These results are exploratory rather than production benchmarks. The modeling dataset is small (90 samples, 18 test), historical, and highly dependent on the feature engineering, split strategy, and scikit-learn version used. Results may vary significantly across runs and library versions.
 
 ## Run Locally
 
@@ -51,14 +51,14 @@ Create and activate the project environment:
 
 ```powershell
 python -m venv .venv
-.\<>.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
 Run the dashboard from the repository root:
 
 ```powershell
-python app\spacex_dash_app.py
+python app/spacex_dash_app.py
 ```
 
 Then open `http://127.0.0.1:8051/` in a browser.
@@ -68,8 +68,39 @@ Then open `http://127.0.0.1:8051/` in a browser.
 Build and run with Docker:
 
 ```powershell
-docker build --tag spacex-project . docker buildx build --tag spacex-project -f Dockerfile
+docker build -t spacex-project .
 docker run -it -p 8051:8051 spacex-project
+```
+
+### Option 3: Docker Compose (Easiest for Development)
+
+Run the dashboard:
+```powershell
+docker compose up -d spacex-dashboard
+# Open http://localhost:8051
+docker compose down
+```
+
+Run Jupyter Lab for notebook exploration:
+```powershell
+docker compose --profile dev up -d spacex-notebooks
+# Open http://localhost:8888
+docker compose down
+```
+
+### Option 4: Makefile (Convenience Commands)
+
+```powershell
+make install          # Create venv and install dependencies
+make run-dashboard    # Run dashboard locally
+make run-notebooks    # Run Jupyter Lab locally
+make build            # Build Docker image
+make up               # Start all services (dashboard + notebooks)
+make up-dashboard     # Start only dashboard
+make down             # Stop all services
+make lint             # Run linter
+make test             # Run tests
+make clean            # Clean build artifacts
 ```
 
 ## Development Tools
@@ -78,6 +109,10 @@ docker run -it -p 8051:8051 spacex-project
 |------|-------------|
 | `Dockerfile` | Container configuration for reproducible builds |
 | `.dockerignore` | Files to exclude when using Docker |
+| `docker-compose.yml` | Multi-service orchestration (dashboard + Jupyter) |
+| `Makefile` | Convenience commands for common tasks |
+| `pyproject.toml` | Modern Python project metadata and tool config |
+| `requirements.txt` | Pinned dependencies for reproducible installs |
 
 ## Data Sources
 

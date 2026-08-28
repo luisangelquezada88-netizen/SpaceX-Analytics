@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spacex-landing-prediction"
+version = "1.0.0"
+description = "End-to-end Data Science project predicting SpaceX Falcon 9 first-stage landing success"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Luis", email = "luis@example.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "numpy",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "html5lib",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "folium",
+    "scikit-learn",
+    "sqlalchemy",
+    "ipython-sql",
+    "prettytable",
+    "dash",
+    "ipykernel",
+    "nbconvert",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-cov",
+    "black",
+    "jupyterlab",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+lint.select = ["E", "F", "W", "I", "UP", "B"]
+lint.ignore = ["E501"]
+format.quote-style = "single"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
