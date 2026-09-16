@@ -21,8 +21,9 @@ RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Expose dashboard port
+# Expose dashboard port (Render inyecta $PORT, por defecto 8051)
 EXPOSE 8051
 
-# Default command to run the dashboard
-CMD ["python", "app/spacex_dash_app.py"]
+# Producción con gunicorn: 2 workers es lo máximo seguro en plan Free 512MB
+# sh -c es necesario para expandir ${PORT}
+CMD ["sh", "-c", "gunicorn app.spacex_dash_app:server --bind 0.0.0.0:${PORT:-8051} --workers 2 --threads 2 --timeout 120"]

@@ -1,0 +1,12 @@
+services:
+  # Dashboard Dash - plan gratuito
+  # Usa el Dockerfile de la raíz (ya configurado con gunicorn + $PORT)
+  - type: web
+    name: spacex-dashboard
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1

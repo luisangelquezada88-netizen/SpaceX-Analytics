@@ -36,6 +36,7 @@ dependencies = [
     "ipython-sql",
     "prettytable",
     "dash",
+    "gunicorn",
     "ipykernel",
     "nbconvert",
 ]

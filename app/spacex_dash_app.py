@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -83,6 +84,7 @@ def create_launch_map(selected_site='All Sites'):
 
 # Create a dash application
 app = dash.Dash(__name__)
+server = app.server  # Expuesto para gunicorn / Render (producción)
 
 # Create initial map
 initial_map = create_launch_map('All Sites')
@@ -198,7 +200,8 @@ def update_launch_map(launch_site):
 
 # Run the app
 if __name__ == '__main__':
-    app.run(port=8051)
+    port = int(os.environ.get('PORT', 8051))
+    app.run(host='0.0.0.0', port=port)
 
     
 

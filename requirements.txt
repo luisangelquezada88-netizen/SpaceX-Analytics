@@ -24,6 +24,7 @@ prettytable
 
 # Dashboard
 dash
+gunicorn
 
 # Notebook execution
 ipykernel
