@@ -27,6 +27,51 @@ LAUNCH_SITES = {
     'VAFB SLC-4E': [34.632834, -120.610745],
 }
 
+# ---- Tema visual SpaceX (sin dependencias extra, solo estilos inline) ----
+THEME = {
+    'bg': '#0B0D17',          # fondo página
+    'card': '#151A2E',        # tarjetas
+    'card_border': '#232946',
+    'text': '#EAEBF0',
+    'muted': '#9AA3B2',
+    'accent': '#00D4FF',      # azul SpaceX
+    'success': '#00E676',
+    'failure': '#FF5252',
+}
+CARD_STYLE = {
+    'backgroundColor': THEME['card'],
+    'border': f"1px solid {THEME['card_border']}",
+    'borderRadius': '14px',
+    'padding': '18px 20px',
+    'boxShadow': '0 8px 24px rgba(0,0,0,0.35)',
+}
+KPI_CARD = {
+    **CARD_STYLE,
+    'textAlign': 'center',
+    'minWidth': '150px',
+    'flex': '1',
+}
+
+# KPIs globales (baratos de calcular una vez al importar)
+TOTAL_LAUNCHES = len(spacex_df)
+SUCCESS_RATE = spacex_df['class'].mean() * 100
+N_SITES = spacex_df['Launch Site'].nunique()
+BEST_SITE = spacex_df.groupby('Launch Site')['class'].mean().idxmax()
+
+
+def style_fig(fig, title):
+    """Aplica tema oscuro uniforme a las figuras Plotly."""
+    fig.update_layout(
+        template='plotly_dark',
+        title={'text': title, 'x': 0.02, 'xanchor': 'left', 'font': {'size': 16, 'color': THEME['text']}},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'color': THEME['text']},
+        margin={'l': 50, 'r': 30, 't': 60, 'b': 50},
+        legend={'orientation': 'h', 'y': -0.2},
+    )
+    return fig
+
 def create_launch_map(selected_site='All Sites'):
     """Create a Folium map with marker clusters showing launch success/failure."""
     # Default center: NASA Johnson Space Center
@@ -92,48 +137,105 @@ server = app.server  # Expuesto para gunicorn / Render (producción)
 # arranca vacío y el callback update_launch_map lo rellena al cargar la página.
 
 # Create an app layout
-app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
-                                        style={'textAlign': 'center', 'color': '#503D36',
-                                               'font-size': 40}),
-                                # TASK 1: Add a dropdown list to enable Launch Site selection
-                                # The default select value is for ALL sites
-                                dcc.Dropdown(id='site-dropdown',
-                                options=[
-                                    {'label': 'All Sites', 'value': 'All Sites'},
-                                    {'label': 'CCAFS LC-40', 'value': 'CCAFS LC-40'},
-                                    {'label': 'VAFB SLC-4E', 'value': 'VAFB SLC-4E'},
-                                    {'label': 'KSC LC-39A', 'value': 'KSC LC-39A'},
-                                    {'label': 'CCAFS SLC-40', 'value': 'CCAFS SLC-40'}
-                                ],
-                                placeholder='Select a Launch Site Here',
-                                value='All Sites',
-                                searchable=True
-                                ),
-                                html.Br(),
-
-                                # Launch Site Map with Success/Failure Clusters
-                                html.H3('Launch Site Map - Success/Failure Clusters', style={'textAlign': 'center'}),
-                                html.Iframe(id='launch-site-map', srcDoc='',
-                                           style={'width': '100%', 'height': '500px', 'border': 'none'}),
-                                html.Br(),
-
-                                # TASK 2: Add a pie chart to show the total successful launches count for all sites
-                                # If a specific launch site was selected, show the Success vs. Failed counts for the site
-                                html.Div(dcc.Graph(id='success-pie-chart')),
-                                html.Br(),
-
-                                html.P("Payload range (Kg):"),
-                                # TASK 3: Add a slider to select payload range
-                                dcc.RangeSlider(id='payload-slider',
-                                min=0,
-                                max=10000,
-                                step=1000,
-                                marks={i: '{}'.format(i) for i in range(0, 10001, 1000)},
-                                value=[min_payload, max_payload]),
-
-                                # TASK 4: Add a scatter chart to show the correlation between payload and launch success
-                                html.Div(dcc.Graph(id='success-payload-scatter-chart')),
-                                ])
+app.layout = html.Div(
+    style={'backgroundColor': THEME['bg'], 'color': THEME['text'],
+           'minHeight': '100vh', 'padding': '0 0 40px 0',
+           'fontFamily': 'Segoe UI, Arial, sans-serif'},
+    children=[
+        # Header
+        html.Div(
+            style={'textAlign': 'center', 'padding': '36px 20px 10px 20px'},
+            children=[
+                html.Div('FALCON 9  •  FIRST-STAGE RECOVERY',
+                         style={'letterSpacing': '4px', 'fontSize': 12, 'color': THEME['accent']}),
+                html.H1('SpaceX Launch Records Dashboard',
+                        style={'margin': '8px 0 4px 0', 'fontSize': 38}),
+                html.P('¿Dónde y con qué carga aterriza mejor el Falcon 9? Filtra por sitio y payload.',
+                       style={'color': THEME['muted'], 'fontSize': 15, 'margin': 0}),
+            ],
+        ),
+        # Contenedor central
+        html.Div(
+            style={'maxWidth': '1100px', 'margin': '0 auto', 'padding': '0 16px',
+                   'display': 'flex', 'flexDirection': 'column', 'gap': '16px'},
+            children=[
+                # KPIs
+                html.Div(
+                    style={'display': 'flex', 'gap': '12px', 'flexWrap': 'wrap'},
+                    children=[
+                        html.Div(style=KPI_CARD, children=[
+                            html.Div('LANZAMIENTOS', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div(f'{TOTAL_LAUNCHES}', style={'fontSize': 30, 'fontWeight': 'bold'}),
+                        ]),
+                        html.Div(style=KPI_CARD, children=[
+                            html.Div('ÉXITO GLOBAL', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div(f'{SUCCESS_RATE:.1f}%', style={'fontSize': 30, 'fontWeight': 'bold', 'color': THEME['success']}),
+                        ]),
+                        html.Div(style=KPI_CARD, children=[
+                            html.Div('SITIOS', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div(f'{N_SITES}', style={'fontSize': 30, 'fontWeight': 'bold'}),
+                        ]),
+                        html.Div(style=KPI_CARD, children=[
+                            html.Div('MEJOR SITIO', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div(f'{BEST_SITE}', style={'fontSize': 16, 'fontWeight': 'bold', 'color': THEME['accent']}),
+                        ]),
+                    ],
+                ),
+                # Controles
+                html.Div(style=CARD_STYLE, children=[
+                    html.Div('Launch Site', style={'fontSize': 12, 'letterSpacing': '2px', 'color': THEME['muted'], 'marginBottom': '6px'}),
+                    dcc.Dropdown(
+                        id='site-dropdown',
+                        options=[
+                            {'label': 'All Sites', 'value': 'All Sites'},
+                            {'label': 'CCAFS LC-40', 'value': 'CCAFS LC-40'},
+                            {'label': 'VAFB SLC-4E', 'value': 'VAFB SLC-4E'},
+                            {'label': 'KSC LC-39A', 'value': 'KSC LC-39A'},
+                            {'label': 'CCAFS SLC-40', 'value': 'CCAFS SLC-40'},
+                        ],
+                        placeholder='Select a Launch Site Here',
+                        value='All Sites',
+                        searchable=True,
+                        style={'color': '#111'},
+                    ),
+                    html.Div('Payload range (kg)',
+                             style={'fontSize': 12, 'letterSpacing': '2px', 'color': THEME['muted'],
+                                    'margin': '16px 0 6px 0'}),
+                    dcc.RangeSlider(
+                        id='payload-slider',
+                        min=0, max=10000, step=1000,
+                        marks={i: {'label': f'{i//1000}k', 'style': {'color': THEME['muted']}}
+                               for i in range(0, 10001, 1000)},
+                        value=[min_payload, max_payload],
+                    ),
+                ]),
+                # Mapa
+                html.Div(style=CARD_STYLE, children=[
+                    html.H3('Launch Site Map — Success (green) vs Failure (red)',
+                            style={'margin': '0 0 10px 0', 'fontSize': 18}),
+                    html.P('Verde = aterrizaje OK · Rojo = fallido. Cambia el sitio para centrar el mapa.',
+                           style={'color': THEME['muted'], 'fontSize': 13, 'margin': '0 0 10px 0'}),
+                    html.Iframe(id='launch-site-map', srcDoc='',
+                                style={'width': '100%', 'height': '500px', 'border': 'none',
+                                       'borderRadius': '10px', 'backgroundColor': '#fff'}),
+                ]),
+                # Gráficas
+                html.Div(style=CARD_STYLE, children=[
+                    html.Div(dcc.Graph(id='success-pie-chart', style={'height': '380px'})),
+                ]),
+                html.Div(style=CARD_STYLE, children=[
+                    html.H3('Payload vs Landing Success',
+                            style={'margin': '0 0 4px 0', 'fontSize': 18}),
+                    html.P('Eje Y: 1 = éxito, 0 = fallo. Colorea por versión del booster.',
+                           style={'color': THEME['muted'], 'fontSize': 13, 'margin': '0 0 6px 0'}),
+                    html.Div(dcc.Graph(id='success-payload-scatter-chart', style={'height': '420px'})),
+                ]),
+                html.Div('Datos históricos SpaceX + Wikipedia · Modelo SVM 87.8% (exploratorio, no operativo).',
+                         style={'textAlign': 'center', 'color': THEME['muted'], 'fontSize': 12}),
+            ],
+        ),
+    ],
+)
 
 # TASK 2:
 # Add a callback function for `site-dropdown` as input, `success-pie-chart` as output
@@ -145,7 +247,9 @@ def get_pie_chart(launch_site):
         fig = px.pie(site_counts,
                      values='Successful launches',
                      names='Launch Site',
-                     title='Total Success Launches by Site')
+                     title='Total Success Launches by Site',
+                     hole=0.4,
+                     color_discrete_sequence=px.colors.qualitative.Bold)
     else:
         site_data = spacex_df[spacex_df['Launch Site'] == launch_site].copy()
         site_data['Landing status'] = site_data['class'].map({0: 'Failure', 1: 'Success'})
@@ -153,8 +257,11 @@ def get_pie_chart(launch_site):
         fig = px.pie(status_counts,
                      values='Launches',
                      names='Landing status',
-                     title='Total Success Launches for Site {}'.format(launch_site))
-    return(fig)
+                     title='Total Success Launches for Site {}'.format(launch_site),
+                     hole=0.4,
+                     color='Landing status',
+                     color_discrete_map={'Success': THEME['success'], 'Failure': THEME['failure']})
+    return style_fig(fig, fig.layout.title.text)
 
 # TASK 4:
 # Add a callback function for `site-dropdown` and `payload-slider` as inputs, `success-payload-scatter-chart` as output
@@ -175,8 +282,8 @@ def get_payload_chart(launch_site, payload_mass):
         title = f'Correlation Between Payload and Success for Site {launch_site}'
     
     if len(plot_df) == 0:
-        return px.scatter(title=title + ' (No data in range)')
-    
+        return style_fig(px.scatter(title=title + ' (No data in range)'), title + ' (No data in range)')
+
     fig = px.scatter(
         plot_df,
         x='Payload Mass (kg)',
@@ -184,9 +291,12 @@ def get_payload_chart(launch_site, payload_mass):
         color='Booster Version',
         hover_data=['Launch Site'],
         title=title,
-        opacity=0.7
+        opacity=0.85,
+        color_discrete_sequence=px.colors.qualitative.Vivid,
     )
-    return fig
+    fig.update_traces(marker={'size': 11, 'line': {'width': 1, 'color': 'white'}})
+    fig.update_yaxes(tickvals=[0, 1], ticktext=['Failure (0)', 'Success (1)'])
+    return style_fig(fig, title)
 
 
 # TASK 5: Add a callback for the launch site map
