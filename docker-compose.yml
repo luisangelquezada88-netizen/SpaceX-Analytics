@@ -18,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        EXTRAS: "true"
     ports:
       - "8888:8888"
     volumes:

@@ -1,0 +1,9 @@
+# Dependencias mínimas SOLO para el dashboard en producción (Render).
+# El dashboard (app/spacex_dash_app.py) solo importa: pandas, dash, plotly, folium.
+# requirements.txt completo (sklearn, matplotlib, notebooks...) solo se usa en local/dev.
+pandas
+numpy
+plotly
+folium
+dash
+gunicorn

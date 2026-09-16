@@ -86,9 +86,10 @@ def create_launch_map(selected_site='All Sites'):
 app = dash.Dash(__name__)
 server = app.server  # Expuesto para gunicorn / Render (producción)
 
-# Create initial map
-initial_map = create_launch_map('All Sites')
-map_html = initial_map._repr_html_()
+# Nota perf: NO pre-renderizamos el mapa Folium al importar.
+# Antes hacíamos create_launch_map('All Sites')._repr_html_() aquí y
+# retrasaba 2-5s el arranque (healthcheck de Render). Ahora el iframe
+# arranca vacío y el callback update_launch_map lo rellena al cargar la página.
 
 # Create an app layout
 app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
@@ -112,7 +113,7 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 
                                 # Launch Site Map with Success/Failure Clusters
                                 html.H3('Launch Site Map - Success/Failure Clusters', style={'textAlign': 'center'}),
-                                html.Iframe(id='launch-site-map', srcDoc=map_html, 
+                                html.Iframe(id='launch-site-map', srcDoc='',
                                            style={'width': '100%', 'height': '500px', 'border': 'none'}),
                                 html.Br(),
 
