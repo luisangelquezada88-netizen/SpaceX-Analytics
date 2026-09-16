@@ -1,6 +1,10 @@
 
 # SpaceX Falcon 9 Landing Prediction
 
+🚀 **Live demo:** https://spacex-dashboard-c86z.onrender.com
+
+> Nota: hosting gratuito en Render. Si lleva 15 min sin visitas, tarda ~1 min en despertar.
+
 End-to-end data science project analyzing SpaceX Falcon 9 launches and predicting whether the first stage lands successfully.
 
 ## Business Context
