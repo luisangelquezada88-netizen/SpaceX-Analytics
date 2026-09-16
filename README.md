@@ -3,9 +3,81 @@
 
 🚀 **Live demo:** https://spacex-dashboard-c86z.onrender.com
 
-> Nota: hosting gratuito en Render. Si lleva 15 min sin visitas, tarda ~1 min en despertar.
+> Free hosting on Render. If the service has been idle for 15 minutes, the first load takes ~1 minute to wake up.
 
 End-to-end data science project analyzing SpaceX Falcon 9 launches and predicting whether the first stage lands successfully.
+
+## Live Deployment
+
+Production deployment runs on **Render (Free plan, Docker runtime)** from this repository.
+
+- **URL:** https://spacex-dashboard-c86z.onrender.com
+- **Blueprint:** `render.yaml` at the repo root (web service `spacex-dashboard`, Docker, Free plan).
+- **Server:** `gunicorn app.spacex_dash_app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --preload`.
+- **Auto-deploy:** every `git push` to `main` triggers a redeploy. No manual steps in Render.
+- **Free-tier notes:** sleeps after 15 minutes without traffic (~1 min cold start), 750 instance hours/month (enough for one always-on app), ephemeral filesystem (fine here because the app only reads the CSV bundled in Git).
+
+## Run Locally
+
+### Option 1: Python venv
+
+Create and activate the project environment:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Run the dashboard from the repository root:
+
+```powershell
+python app/spacex_dash_app.py
+```
+
+Then open `http://127.0.0.1:8051/` in a browser.
+
+### Option 2: Docker (Recommended for parity with production)
+
+Build and run with Docker:
+
+```powershell
+docker build -t spacex-project .
+docker run -it -p 8051:8051 -e PORT=8051 spacex-project
+```
+
+Production installs only `requirements.dashboard.txt` (6 packages). Pass `EXTRAS=true` as a build arg for the full notebook stack.
+
+### Option 3: Docker Compose (Easiest for Development)
+
+Run the dashboard:
+```powershell
+docker compose up -d spacex-dashboard
+# Open http://localhost:8051
+docker compose down
+```
+
+Run Jupyter Lab for notebook exploration:
+```powershell
+docker compose --profile dev up -d spacex-notebooks
+# Open http://localhost:8888
+docker compose down
+```
+
+### Option 4: Makefile (Convenience Commands)
+
+```powershell
+make install          # Create venv and install dependencies
+make run-dashboard    # Run dashboard locally
+make run-notebooks    # Run Jupyter Lab locally
+make build            # Build Docker image
+make up               # Start all services (dashboard + notebooks)
+make up-dashboard     # Start only dashboard
+make down             # Stop all services
+make lint             # Run linter
+make test             # Run tests
+make clean            # Clean build artifacts
+```
 
 ## Business Context
 
@@ -47,66 +119,6 @@ The notebooks compare four supervised classification algorithms using train/test
 
 These results are exploratory rather than production benchmarks. The modeling dataset is small (90 samples, 18 test), historical, and highly dependent on the feature engineering, split strategy, and scikit-learn version used. Results may vary significantly across runs and library versions.
 
-## Run Locally
-
-### Option 1: Python venv
-
-Create and activate the project environment:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-Run the dashboard from the repository root:
-
-```powershell
-python app/spacex_dash_app.py
-```
-
-Then open `http://127.0.0.1:8051/` in a browser.
-
-### Option 2: Docker (Recommended)
-
-Build and run with Docker:
-
-```powershell
-docker build -t spacex-project .
-docker run -it -p 8051:8051 spacex-project
-```
-
-### Option 3: Docker Compose (Easiest for Development)
-
-Run the dashboard:
-```powershell
-docker compose up -d spacex-dashboard
-# Open http://localhost:8051
-docker compose down
-```
-
-Run Jupyter Lab for notebook exploration:
-```powershell
-docker compose --profile dev up -d spacex-notebooks
-# Open http://localhost:8888
-docker compose down
-```
-
-### Option 4: Makefile (Convenience Commands)
-
-```powershell
-make install          # Create venv and install dependencies
-make run-dashboard    # Run dashboard locally
-make run-notebooks    # Run Jupyter Lab locally
-make build            # Build Docker image
-make up               # Start all services (dashboard + notebooks)
-make up-dashboard     # Start only dashboard
-make down             # Stop all services
-make lint             # Run linter
-make test             # Run tests
-make clean            # Clean build artifacts
-```
-
 ## Development Tools
 
 | File | Description |
@@ -116,7 +128,9 @@ make clean            # Clean build artifacts
 | `docker-compose.yml` | Multi-service orchestration (dashboard + Jupyter) |
 | `Makefile` | Convenience commands for common tasks |
 | `pyproject.toml` | Modern Python project metadata and tool config |
-| `requirements.txt` | Pinned dependencies for reproducible installs |
+| `requirements.txt` | Full dependencies for local dev and notebooks |
+| `requirements.dashboard.txt` | Minimal dependencies for production dashboard |
+| `render.yaml` | Render Blueprint for free production deployment |
 
 ## Data Sources
 

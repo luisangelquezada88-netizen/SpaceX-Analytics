@@ -129,12 +129,12 @@ def create_launch_map(selected_site='All Sites'):
 
 # Create a dash application
 app = dash.Dash(__name__)
-server = app.server  # Expuesto para gunicorn / Render (producción)
+server = app.server  # Exposed for gunicorn / Render (production)
 
-# Nota perf: NO pre-renderizamos el mapa Folium al importar.
-# Antes hacíamos create_launch_map('All Sites')._repr_html_() aquí y
-# retrasaba 2-5s el arranque (healthcheck de Render). Ahora el iframe
-# arranca vacío y el callback update_launch_map lo rellena al cargar la página.
+# Perf note: we do NOT pre-render the Folium map at import time.
+# Rendering create_launch_map('All Sites')._repr_html_() here used to delay
+# startup by 2-5s (Render healthcheck). Now the iframe starts empty and the
+# update_launch_map callback fills it when the page loads.
 
 # Create an app layout
 app.layout = html.Div(
@@ -150,11 +150,11 @@ app.layout = html.Div(
                          style={'letterSpacing': '4px', 'fontSize': 12, 'color': THEME['accent']}),
                 html.H1('SpaceX Launch Records Dashboard',
                         style={'margin': '8px 0 4px 0', 'fontSize': 38}),
-                html.P('¿Dónde y con qué carga aterriza mejor el Falcon 9? Filtra por sitio y payload.',
+                html.P('Where and with which payload does Falcon 9 land best? Filter by site and payload.',
                        style={'color': THEME['muted'], 'fontSize': 15, 'margin': 0}),
             ],
         ),
-        # Contenedor central
+        # Central container
         html.Div(
             style={'maxWidth': '1100px', 'margin': '0 auto', 'padding': '0 16px',
                    'display': 'flex', 'flexDirection': 'column', 'gap': '16px'},
@@ -164,24 +164,24 @@ app.layout = html.Div(
                     style={'display': 'flex', 'gap': '12px', 'flexWrap': 'wrap'},
                     children=[
                         html.Div(style=KPI_CARD, children=[
-                            html.Div('LANZAMIENTOS', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div('LAUNCHES', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
                             html.Div(f'{TOTAL_LAUNCHES}', style={'fontSize': 30, 'fontWeight': 'bold'}),
                         ]),
                         html.Div(style=KPI_CARD, children=[
-                            html.Div('ÉXITO GLOBAL', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div('GLOBAL SUCCESS', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
                             html.Div(f'{SUCCESS_RATE:.1f}%', style={'fontSize': 30, 'fontWeight': 'bold', 'color': THEME['success']}),
                         ]),
                         html.Div(style=KPI_CARD, children=[
-                            html.Div('SITIOS', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div('SITES', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
                             html.Div(f'{N_SITES}', style={'fontSize': 30, 'fontWeight': 'bold'}),
                         ]),
                         html.Div(style=KPI_CARD, children=[
-                            html.Div('MEJOR SITIO', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
+                            html.Div('BEST SITE', style={'fontSize': 11, 'letterSpacing': '2px', 'color': THEME['muted']}),
                             html.Div(f'{BEST_SITE}', style={'fontSize': 16, 'fontWeight': 'bold', 'color': THEME['accent']}),
                         ]),
                     ],
                 ),
-                # Controles
+                # Controls
                 html.Div(style=CARD_STYLE, children=[
                     html.Div('Launch Site', style={'fontSize': 12, 'letterSpacing': '2px', 'color': THEME['muted'], 'marginBottom': '6px'}),
                     dcc.Dropdown(
@@ -209,28 +209,28 @@ app.layout = html.Div(
                         value=[min_payload, max_payload],
                     ),
                 ]),
-                # Mapa
+                # Map
                 html.Div(style=CARD_STYLE, children=[
                     html.H3('Launch Site Map — Success (green) vs Failure (red)',
                             style={'margin': '0 0 10px 0', 'fontSize': 18}),
-                    html.P('Verde = aterrizaje OK · Rojo = fallido. Cambia el sitio para centrar el mapa.',
+                    html.P('Green = successful landing · Red = failed. Change the site to recenter the map.',
                            style={'color': THEME['muted'], 'fontSize': 13, 'margin': '0 0 10px 0'}),
                     html.Iframe(id='launch-site-map', srcDoc='',
                                 style={'width': '100%', 'height': '500px', 'border': 'none',
                                        'borderRadius': '10px', 'backgroundColor': '#fff'}),
                 ]),
-                # Gráficas
+                # Charts
                 html.Div(style=CARD_STYLE, children=[
                     html.Div(dcc.Graph(id='success-pie-chart', style={'height': '380px'})),
                 ]),
                 html.Div(style=CARD_STYLE, children=[
                     html.H3('Payload vs Landing Success',
                             style={'margin': '0 0 4px 0', 'fontSize': 18}),
-                    html.P('Eje Y: 1 = éxito, 0 = fallo. Colorea por versión del booster.',
+                    html.P('Y axis: 1 = success, 0 = failure. Colored by booster version.',
                            style={'color': THEME['muted'], 'fontSize': 13, 'margin': '0 0 6px 0'}),
-                    html.Div(dcc.Graph(id='success-payload-scatter-chart', style={'height': '420px'})),
+                    html.Div(dcc.Graph(id='success-payload-scatter-chart', style={'height': '480px'})),
                 ]),
-                html.Div('Datos históricos SpaceX + Wikipedia · Modelo SVM 87.8% (exploratorio, no operativo).',
+                html.Div('Historical SpaceX + Wikipedia data · SVM model 87.8% (exploratory, not operational).',
                          style={'textAlign': 'center', 'color': THEME['muted'], 'fontSize': 12}),
             ],
         ),
@@ -296,7 +296,15 @@ def get_payload_chart(launch_site, payload_mass):
     )
     fig.update_traces(marker={'size': 11, 'line': {'width': 1, 'color': 'white'}})
     fig.update_yaxes(tickvals=[0, 1], ticktext=['Failure (0)', 'Success (1)'])
-    return style_fig(fig, title)
+    fig = style_fig(fig, title)
+    # Fix overlap: with 7+ booster versions the horizontal legend wraps over
+    # the X-axis title. Push the legend further down and reserve bottom margin.
+    fig.update_layout(
+        margin={'l': 50, 'r': 30, 't': 60, 'b': 140},
+        legend={'orientation': 'h', 'yanchor': 'top', 'y': -0.3, 'xanchor': 'center', 'x': 0.5},
+        xaxis={'title': {'text': 'Payload Mass (kg)', 'standoff': 12}},
+    )
+    return fig
 
 
 # TASK 5: Add a callback for the launch site map
