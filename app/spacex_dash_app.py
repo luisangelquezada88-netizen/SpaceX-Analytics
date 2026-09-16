@@ -49,7 +49,7 @@ KPI_CARD = {
     **CARD_STYLE,
     'textAlign': 'center',
     'minWidth': '150px',
-    'flex': '1',
+    'flex': '1 1 160px',  # wraps to 2 columns on phones
 }
 
 # KPIs globales (baratos de calcular una vez al importar)
@@ -128,7 +128,13 @@ def create_launch_map(selected_site='All Sites'):
     return site_map
 
 # Create a dash application
-app = dash.Dash(__name__)
+# meta_tags viewport = key for mobile scaling (Dash 4 includes it by default,
+# we set it explicitly so phones render at device width, like Streamlit does).
+app = dash.Dash(
+    __name__,
+    title='SpaceX Launch Records Dashboard',
+    meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1'}],
+)
 server = app.server  # Exposed for gunicorn / Render (production)
 
 # Perf note: we do NOT pre-render the Folium map at import time.
@@ -149,7 +155,7 @@ app.layout = html.Div(
                 html.Div('FALCON 9  •  FIRST-STAGE RECOVERY',
                          style={'letterSpacing': '4px', 'fontSize': 12, 'color': THEME['accent']}),
                 html.H1('SpaceX Launch Records Dashboard',
-                        style={'margin': '8px 0 4px 0', 'fontSize': 38}),
+                        style={'margin': '8px 0 4px 0', 'fontSize': 'clamp(24px, 5vw, 38px)'}),
                 html.P('Where and with which payload does Falcon 9 land best? Filter by site and payload.',
                        style={'color': THEME['muted'], 'fontSize': 15, 'margin': 0}),
             ],
@@ -204,8 +210,10 @@ app.layout = html.Div(
                     dcc.RangeSlider(
                         id='payload-slider',
                         min=0, max=10000, step=1000,
+                        # 6 marks (every 2000) instead of 11: readable on phones,
+                        # desktop keeps precision via drag.
                         marks={i: {'label': f'{i//1000}k', 'style': {'color': THEME['muted']}}
-                               for i in range(0, 10001, 1000)},
+                               for i in range(0, 10001, 2000)},
                         value=[min_payload, max_payload],
                     ),
                 ]),
@@ -221,14 +229,16 @@ app.layout = html.Div(
                 ]),
                 # Charts
                 html.Div(style=CARD_STYLE, children=[
-                    html.Div(dcc.Graph(id='success-pie-chart', style={'height': '380px'})),
+                    html.Div(dcc.Graph(id='success-pie-chart', style={'height': '380px'},
+                                       responsive=True, config={'responsive': True})),
                 ]),
                 html.Div(style=CARD_STYLE, children=[
                     html.H3('Payload vs Landing Success',
                             style={'margin': '0 0 4px 0', 'fontSize': 18}),
                     html.P('Y axis: 1 = success, 0 = failure. Colored by booster version.',
                            style={'color': THEME['muted'], 'fontSize': 13, 'margin': '0 0 6px 0'}),
-                    html.Div(dcc.Graph(id='success-payload-scatter-chart', style={'height': '480px'})),
+                    html.Div(dcc.Graph(id='success-payload-scatter-chart', style={'height': '480px'},
+                                       responsive=True, config={'responsive': True})),
                 ]),
                 html.Div('Historical SpaceX + Wikipedia data · SVM model 87.8% (exploratory, not operational).',
                          style={'textAlign': 'center', 'color': THEME['muted'], 'fontSize': 12}),

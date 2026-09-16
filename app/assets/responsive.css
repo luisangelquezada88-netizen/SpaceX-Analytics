@@ -1,0 +1,51 @@
+/* Mobile-first tweaks. Dash serves this file automatically from app/assets/.
+   No new dependencies, pure CSS. */
+
+/* Base: prevent horizontal overflow from Plotly modebar / long legends */
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Small phones */
+@media (max-width: 640px) {
+  /* Header */
+  h1 {
+    font-size: 26px !important;
+    line-height: 1.2;
+    padding: 0 8px;
+  }
+
+  /* Cards: less padding so content breathes */
+  div[class*="card"] {
+    border-radius: 12px;
+  }
+
+  /* Folium map: 500px is too tall on phones */
+  #launch-site-map {
+    height: 340px !important;
+  }
+
+  /* Plotly graphs: let them shrink, avoid fixed 480px dominating the screen */
+  #success-pie-chart,
+  #success-payload-scatter-chart {
+    height: 360px !important;
+  }
+
+  /* RangeSlider marks: smaller text to avoid overlap of 0k..10k */
+  .rc-slider-mark-text {
+    font-size: 10px !important;
+  }
+
+  /* Dropdown: full width, bigger touch target */
+  .Select-control {
+    min-height: 44px !important;
+  }
+}
+
+/* Tablets */
+@media (min-width: 641px) and (max-width: 900px) {
+  #launch-site-map {
+    height: 420px !important;
+  }
+}
